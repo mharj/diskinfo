@@ -1,6 +1,10 @@
 # diskinfo
 read disk information with NodeJS
 
+```bash
+npm install mharj/diskinfo
+```
+
 ```javascript
 const fs = require("fs");
 const parseMBR = require('diskinfo').parseMBR;
