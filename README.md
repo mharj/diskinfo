@@ -13,7 +13,7 @@ let info = parseMBR(mbr);
 console.log(info);
 ```
 
-```json
+```javascript
 { gtp: false,
   partitions:
    [ { active: true,
