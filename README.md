@@ -2,7 +2,7 @@
 read disk information with NodeJS
 
 ```bash
-npm install mharj/diskinfo
+npm install mharj/diskinfo --save
 ```
 
 ```javascript
