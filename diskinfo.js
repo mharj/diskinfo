@@ -3,10 +3,10 @@ function parseMBRPartition(part) {
 	let out = {};
 	out.active = (part.readUInt8(0)==0x80?true:false);
 	out.startCHS = Buffer.from([part[1],part[2],part[3]]);
-	out.type =part.readUInt8(4);
+	out.type = part.readUInt8(4);
 	out.endCHS = Buffer.from([part[5],part[6],part[7]]);
-	out.startSector = part.readUInt16LE(8);
-	out.partitionSize = part.readUInt16LE(12);
+	out.startSector = part.readUInt32LE(8);
+	out.partitionSize = part.readUInt32LE(12);
 	return out;
 }
 
@@ -22,7 +22,7 @@ function parseMBR(mbr) {
 	}
 	ret.uuid = mbr[0x1bb].toString(16) + mbr[0x1ba].toString(16) + mbr[0x1b9].toString(16) + mbr[0x1b8].toString(16); // DiskID: 1B8 (hex) through 1BE (hex) (looks like reverse)
 	for (var i = 446;i <= 508;i += 16) { // MBR table block
-		let data = parseMBRPartition(mbr.slice(i,i+15));
+		let data = parseMBRPartition(mbr.slice(i,i+16));
 		ret.partitions.push(data);
 		if ( data.type == 0xEE ) { // we have GTP type : https://www.win.tue.nl/~aeb/partitions/partition_types-1.html
 			ret.gtp = true;
