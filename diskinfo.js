@@ -52,7 +52,14 @@ function scan(fd) {
 	let rootMbr = parseMBR(buffer);
 	rootMbr.partitions.forEach(function(p){
 		if ( p.type == partTypes.EXTENDED ) { // TODO: Extended partition reading
-			
+			fs.readSync(fd,buffer,0,buffer.length,(p.startSector*512));
+			let extparts = parseMBR(mbr);
+			extparts.partitions.forEach(function(extpart) {
+				if ( extpart.type != partTypes.EMPTY ) {
+					extpart.startSector = extpart.startSector + p.startSector;
+					rootMbr.partitions.push(extpart);
+				}
+			});
 		}
 		if ( p.type == partTypes.GTP ) { // TODO: GTP partition table reading
 			
