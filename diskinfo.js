@@ -54,7 +54,7 @@ function scan(fd) {
 	rootMbr.partitions.forEach(function(p){
 		if ( p.type == partTypes.EXTENDED ) { // TODO: Extended partition reading
 			fs.readSync(fd,buffer,0,buffer.length,(p.startSector*512));
-			let extparts = parseMBR(mbr);
+			let extparts = parseMBR(buffer);
 			extparts.partitions.forEach(function(extpart) {
 				if ( extpart.type != partTypes.EMPTY ) {
 					extpart.startSector = extpart.startSector + p.startSector;
