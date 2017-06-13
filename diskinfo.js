@@ -2,6 +2,7 @@ const fs = require("fs");
 
 const partTypes = {
 	EMPTY:			0x00,
+	EXTENDED:		0x05,
 	NTFS:			0x07,
 	LINUX_SWAP:		0x82,
 	LINUX:			0x83,
