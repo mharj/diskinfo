@@ -20,5 +20,9 @@
     "chai": "^4.0.2",
     "chai-things": "^0.2.0",
     "mocha": "^3.4.2"
+  },
+  "dependencies": {
+    "iconv-lite": "^0.4.18",
+    "uuid-parse": "^1.0.0"
   }
 }
