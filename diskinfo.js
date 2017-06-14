@@ -122,7 +122,7 @@ function scan(fd) {
 			let extparts = parseMBR(buffer);
 			extparts.partitions.forEach(function(extpart) {
 				if ( extpart.type != partTypes.EMPTY ) {
-					extpart.startSector = extpart.startSector + p.startSector;
+					extpart.startLBA = extpart.startLBA + p.startLBA;
 					rootMbr.partitions.push(extpart);
 				}
 			});
