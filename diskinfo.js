@@ -11,7 +11,7 @@ const gptPartTypes = {
 	LINUX_SWAP:			'0657fd6d-a4ab-43c4-84e5-0933c84b4f4f',
 	LINUX_LVM:			'e6d6d379-f507-44c2-a23c-238f2a3df928',
 	LINUX_RAID:			'a19d880f-05fc-4d3b-a006-743f0f84911e',
-	getName: 			function(val) { // print names for values
+	getName: function(val) { // print names for values
 		for (let k in gptPartTypes) {
 			if (gptPartTypes[k] == val) {
 				return k;
@@ -33,7 +33,7 @@ const partTypes = {
 	GPT:				0xee,
 	EFI:				0xef,
 	LINUX_RAID:			0xfd,
-	getName:			function(val) { // print names for values
+	getName: function(val) { // print names for values
 		for (let k in partTypes) {
 			if (partTypes[k] == val) {
 				return k+' ('+val.toString(16)+')';
@@ -64,7 +64,7 @@ function parseMBR(mbr) {
 	if ( mbr[0x1bc] == 90 && mbr[0x1bc] == 90 ) { // 0x5A5A = copy protected (UEFI)
 		ret.copyProtected = true;
 	}
-	ret.uuid = mbr[0x1bb].toString(16) + mbr[0x1ba].toString(16) + mbr[0x1b9].toString(16) + mbr[0x1b8].toString(16); // DiskID: 1B8 (hex) through 1BE (hex) (looks like reverse)
+	ret.uuid = Buffer.from([mbr[0x1bb], mbr[0x1ba], mbr[0x1b9], mbr[0x1b8]]).toString('hex'); // DiskID: 1B8 (hex) through 1BE (hex) (looks like reverse)
 	for (let i = 446; i <= 508; i += 16) { // MBR table blocks
 		ret.partitions.push( parseMBRPartition( mbr.slice(i, i+16) ) );
 	}
@@ -124,7 +124,7 @@ function scan(fd) {
 	}
 	let rootMbr = parseMBR(buffer);
 	rootMbr.type = 'MBR';
-	rootMbr.partitions.forEach(function(p){
+	rootMbr.partitions.forEach(function(p) {
 		if ( p.type == partTypes.EXTENDED ) { // Extended partition reading
 			fs.readSync(fd, buffer, 0, buffer.length, (p.startSector*512));
 			let extparts = parseMBR(buffer);
@@ -137,14 +137,14 @@ function scan(fd) {
 		}
 		if ( p.type == partTypes.GPT ) { // GPT partition table reading
 			fs.readSync(fd, buffer, 0, buffer.length, 512);
-			let gptInfo = parseGPT(buffer);
-			rootMbr.uuid = gptInfo.uuid;
-			let partitionBuffer = Buffer.allocUnsafe( (gptInfo.partitions*gptInfo.partitionSize) );
-			fs.readSync(fd, partitionBuffer, 0, partitionBuffer.length, (gptInfo.tableLBA*512));
+			let gpt = parseGPT(buffer);
+			rootMbr.uuid = gpt.uuid;
+			let gBuff = Buffer.allocUnsafe( (gpt.partitions*gpt.partitionSize) );
+			fs.readSync(fd, gBuff, 0, gBuff.length, (gpt.tableLBA*512));
 			let partitions = [];
-			for (let i = 0; i < (gptInfo.partitions*gptInfo.partitionSize); i += gptInfo.partitionSize ) {
-				let table = parseGPTable(partitionBuffer.slice(i, i+gptInfo.partitionSize));
-				if ( table.type != '00000000-0000-0000-0000-000000000000') {
+			for (let i=0; i < (gpt.partitions*gpt.partitionSize); i+=gpt.partitionSize ) {
+				let table = parseGPTable(gBuff.slice(i, i+gpt.partitionSize));
+				if ( table.type != gptPartTypes.EMPTY ) {
 					partitions.push(table);
 				}
 			}
@@ -155,5 +155,3 @@ function scan(fd) {
 	return rootMbr;
 }
 module.exports.scan = scan;
-
-

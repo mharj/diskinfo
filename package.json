@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/mharj/diskinfo#readme",
   "devDependencies": {
+    "buffer-crc32": "^0.2.13",
     "chai": "^4.0.2",
     "chai-things": "^0.2.0",
     "eslint": "^4.0.0",
