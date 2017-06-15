@@ -57,5 +57,8 @@ typings/
 # dotenv environment variables file
 .env
 
+# visual studio code
+.vs
+
 # 
 build.js
