@@ -1,5 +1,5 @@
 # diskinfo
-read disk information with NodeJS
+read disk partition and filesystem information with NodeJS
 
 ```bash
 npm install mharj/diskinfo --save
