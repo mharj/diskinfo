@@ -10,14 +10,19 @@ const parseGPT = require('../diskinfo.js').parseGPT;
 const parseGPTable = require('../diskinfo.js').parseGPTable;
 const partTypes = require('../diskinfo.js').partTypes;
 const gptPartTypes = require('../diskinfo.js').gptPartTypes;
+const Magic = require('../diskinfo.js').magic;
 
 let gptData = null;
 let mbrData = null;
 let gtpInfo = null;
+let fdNTFS = null;
+let fdEXT = null;
 describe('diskinfo', function() {
 	before(function(done) {
 		gptData = fs.readFileSync('./test/gtp.bin');
 		mbrData = fs.readFileSync('./test/mbr.bin');
+		fdNTFS = fs.openSync('./test/ntfs.bin', 'rs+');
+		fdEXT = fs.openSync('./test/ext.bin', 'rs+');
 		done();
 	});
 	it('should parse mbr info', function(done) {
@@ -59,6 +64,18 @@ describe('diskinfo', function() {
 				table.type.should.be.equal(gptPartTypes.LINUX_SWAP); // Linux Swap
 			}
 		}
+		done();
+	});
+	it('should check Win NTFS magic', function(done) {
+		let magic = new Magic(fdNTFS);
+		magic.haveNtfs(0).should.be.a('boolean').and.equal(true);
+		magic.haveExt(0).should.be.a('boolean').and.equal(false);
+		done();
+	});
+	it('should check Linux EXT2/3/4 magic', function(done) {
+		let magic = new Magic(fdEXT);
+		magic.haveExt(0).should.be.a('boolean').and.equal(true);
+		magic.haveNtfs(0).should.be.a('boolean').and.equal(false);
 		done();
 	});
 });

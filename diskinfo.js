@@ -155,3 +155,17 @@ function scan(fd) {
 	return rootMbr;
 }
 module.exports.scan = scan;
+
+function magic(fd) {
+	this.haveExt = function(offset) {
+		let data = Buffer.allocUnsafe(2048);
+		fs.readSync(fd, data, 0, data.length, (512*offset) );
+		return (data.readInt16BE(1080) == 0x53ef);
+	};
+	this.haveNtfs = function(offset) {
+		let data = Buffer.allocUnsafe(512);
+		fs.readSync(fd, data, 0, data.length, (512*offset) );
+		return (data.readInt32BE(3) == 0x4e544653);
+	};
+}
+module.exports.magic = magic;
