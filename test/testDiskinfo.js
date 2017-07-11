@@ -17,12 +17,14 @@ let mbrData = null;
 let gtpInfo = null;
 let fdNTFS = null;
 let fdEXT = null;
+let fdLVM2 = null;
 describe('diskinfo', function() {
 	before(function(done) {
 		gptData = fs.readFileSync('./test/gtp.bin');
 		mbrData = fs.readFileSync('./test/mbr.bin');
 		fdNTFS = fs.openSync('./test/ntfs.bin', 'rs+');
 		fdEXT = fs.openSync('./test/ext.bin', 'rs+');
+		fdLVM2 = fs.openSync('./test/lvm2.bin', 'rs+');
 		done();
 	});
 	it('should parse mbr info', function(done) {
@@ -75,6 +77,13 @@ describe('diskinfo', function() {
 	it('should check Linux EXT2/3/4 magic', function(done) {
 		let magic = new Magic(fdEXT);
 		magic.haveExt(0).should.be.a('boolean').and.equal(true);
+		magic.haveNtfs(0).should.be.a('boolean').and.equal(false);
+		done();
+	});
+	it('should check Linux LVM2 magic', function(done) {
+		let magic = new Magic(fdLVM2);
+		magic.haveLvm2(0).should.be.a('boolean').and.equal(true);
+		magic.haveExt(0).should.be.a('boolean').and.equal(false);
 		magic.haveNtfs(0).should.be.a('boolean').and.equal(false);
 		done();
 	});

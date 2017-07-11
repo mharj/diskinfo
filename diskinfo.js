@@ -167,5 +167,10 @@ function magic(fd) {
 		fs.readSync(fd, data, 0, data.length, (512*offset) );
 		return (data.readInt32BE(3) == 0x4e544653);
 	};
+	this.haveLvm2 = function(offset) {
+		let data = Buffer.allocUnsafe(1024);
+		fs.readSync(fd, data, 0, data.length, (512*offset) );
+		return (data.readInt32BE(536) == 0x4c564d32);
+	};
 }
 module.exports.magic = magic;
