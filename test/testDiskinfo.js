@@ -55,7 +55,7 @@ describe('diskinfo', function() {
 			done();
 		});
 		it('should parse gtp table info', function(done) {
-			for (let i = (gtpInfo.tableLBA*512); i < ((gtpInfo.tableLBA*512)+(gtpInfo.partitions*gtpInfo.partitionSize)); i += gtpInfo.partitionSize ) {
+			for (let i = (Number(gtpInfo.tableLBA)*512); i < ((Number(gtpInfo.tableLBA)*512)+(gtpInfo.partitions*gtpInfo.partitionSize)); i += gtpInfo.partitionSize ) {
 				let table = parseGPTable(gptData.slice(i, i+gtpInfo.partitionSize));
 				if ( i == 1024 ) {
 					table.type.should.be.equal(gptPartTypes.EFI); // EFI

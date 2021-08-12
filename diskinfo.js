@@ -90,12 +90,12 @@ function parseGPT(buf) { // https://en.wikipedia.org/wiki/GUID_Partition_Table
 	out.headerSize = buf.readUInt32LE(12);
 	out.headerCRC32 = buf.readUInt32LE(16);
 	// buf.readUInt32LE(20); // reserved; must be zero
-	out.currentLBA = buf.readUIntLE(24, 8); // Warning: 64bit uint, JS uses this as 53bit
-	out.backupLBA = buf.readUIntLE(32, 8); // Warning: 64bit uint, JS uses this as 53bit
-	out.firstUsableLBA = buf.readUIntLE(40, 8); // Warning: 64bit uint, JS uses this as 53bit
-	out.lastUsableLBA = buf.readUIntLE(48, 8); // Warning: 64bit uint, JS uses this as 53bit
+	out.currentLBA = buf.readBigUInt64LE(24); // Warning: 64bit uint, JS uses this as 53bit
+	out.backupLBA = buf.readBigUInt64LE(32); // Warning: 64bit uint, JS uses this as 53bit
+	out.firstUsableLBA = buf.readBigUInt64LE(40); // Warning: 64bit uint, JS uses this as 53bit
+	out.lastUsableLBA = buf.readBigUInt64LE(48); // Warning: 64bit uint, JS uses this as 53bit
 	out.uuid = uuidParse.unparse(readUuidBytes(buf, 56));
-	out.tableLBA = buf.readUIntLE(72, 8); // Warning: 64bit uint, JS uses this as 53bit
+	out.tableLBA = buf.readBigUInt64LE(72); // Warning: 64bit uint, JS uses this as 53bit
 	out.partitions = buf.readUInt32LE(80);
 	out.partitionSize = buf.readUInt32LE(84);
 	out.partitionCRC32 = buf.readUInt32LE(88);
@@ -108,10 +108,10 @@ function parseGPTable(buf) {
 	out.type = uuidParse.unparse(readUuidBytes(buf, 0));
 	out.uuid = uuidParse.unparse(readUuidBytes(buf, 16));
 	out.active = (out.uuid==gptPartTypes.EMPTY?false:true);
-	out.startLBA = buf.readUIntLE(32, 8); // Warning: 64bit uint, JS uses this as 53bit
-	out.endLBA = buf.readUIntLE(40, 8); // Warning: 64bit uint, JS uses this as 53bit
-	out.partitionSize = out.endLBA-out.startLBA+1; // +1?
-	out.attributes = buf.readUIntLE(48, 8); // Warning: 64bit uint, JS uses this as 53bit
+	out.startLBA = buf.readBigUInt64LE(32); // Warning: 64bit uint, JS uses this as 53bit
+	out.endLBA = buf.readBigUInt64LE(40); // Warning: 64bit uint, JS uses this as 53bit
+	out.partitionSize = out.endLBA-out.startLBA + BigInt(1); // +1?
+	out.attributes = buf.readBigUInt64LE(48); // Warning: 64bit uint, JS uses this as 53bit
 	out.label = iconv.decode(buf.slice(56, 128), 'utf16le').split('\u0000')[0]; // bit hack in here
 	return out;
 }
@@ -140,7 +140,7 @@ function scan(fd) {
 			let gpt = parseGPT(buffer);
 			rootMbr.uuid = gpt.uuid;
 			let gBuff = Buffer.allocUnsafe( (gpt.partitions*gpt.partitionSize) );
-			fs.readSync(fd, gBuff, 0, gBuff.length, (gpt.tableLBA*512));
+			fs.readSync(fd, gBuff, 0, gBuff.length, (Number(gpt.tableLBA)*512));
 			let partitions = [];
 			for (let i=0; i < (gpt.partitions*gpt.partitionSize); i+=gpt.partitionSize ) {
 				let table = parseGPTable(gBuff.slice(i, i+gpt.partitionSize));
