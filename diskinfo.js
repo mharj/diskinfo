@@ -3,7 +3,7 @@ const iconv = require('iconv-lite');
 const uuidParse = require('uuid-parse');
 const EFI_PART = Buffer.from([0x45, 0x46, 0x49, 0x20, 0x50, 0x41, 0x52, 0x54]);
 
-const gptPartTypes = {
+const gptPartTypes = Object.freeze({
 	EMPTY:				'00000000-0000-0000-0000-000000000000',
 	MBR:				'024dee41-33e7-11d3-9d69-0008c781f39f',
 	EFI:				'c12a7328-f81f-11d2-ba4b-00a0c93ec93b',
@@ -11,15 +11,17 @@ const gptPartTypes = {
 	LINUX_SWAP:			'0657fd6d-a4ab-43c4-84e5-0933c84b4f4f',
 	LINUX_LVM:			'e6d6d379-f507-44c2-a23c-238f2a3df928',
 	LINUX_RAID:			'a19d880f-05fc-4d3b-a006-743f0f84911e',
+	MSR:				'e3c9e316-0b5c-4db8-817d-f92df00215ae',
+	BASIC_DATA:			'ebd0a0a2-b9e5-4433-87c0-68b6b72699c7',
 	getName: function(val) { // print names for values
 		for (let k in gptPartTypes) {
 			if (gptPartTypes[k] == val) {
 				return k;
 			}
 		}
-		return '('+val.toString(16)+')';
+		return 'Unknown';
 	},
-};
+});
 module.exports.gptPartTypes = gptPartTypes;
 
 const partTypes = {
@@ -105,13 +107,14 @@ module.exports.parseGPT = parseGPT;
 
 function parseGPTable(buf) {
 	let out = {};
-	out.type = uuidParse.unparse(readUuidBytes(buf, 0));
+	out.typeId = uuidParse.unparse(readUuidBytes(buf, 0));
+	out.type = gptPartTypes.getName(out.typeId);
 	out.uuid = uuidParse.unparse(readUuidBytes(buf, 16));
 	out.active = (out.uuid==gptPartTypes.EMPTY?false:true);
 	out.startLBA = buf.readBigUInt64LE(32); // Warning: 64bit uint, JS uses this as 53bit
 	out.endLBA = buf.readBigUInt64LE(40); // Warning: 64bit uint, JS uses this as 53bit
-	out.partitionSize = out.endLBA-out.startLBA + BigInt(1); // +1?
-	out.attributes = buf.readBigUInt64LE(48); // Warning: 64bit uint, JS uses this as 53bit
+	out.partitionSize = out.endLBA-out.startLBA + 1n; // +1?
+	out.attributes = buf.readBigUInt64BE(48); // Warning: 64bit uint, JS uses this as 53bit
 	out.label = iconv.decode(buf.slice(56, 128), 'utf16le').split('\u0000')[0]; // bit hack in here
 	return out;
 }
@@ -144,7 +147,7 @@ function scan(fd) {
 			let partitions = [];
 			for (let i=0; i < (gpt.partitions*gpt.partitionSize); i+=gpt.partitionSize ) {
 				let table = parseGPTable(gBuff.slice(i, i+gpt.partitionSize));
-				if ( table.type != gptPartTypes.EMPTY ) {
+				if ( table.typeId != gptPartTypes.EMPTY ) {
 					partitions.push(table);
 				}
 			}
