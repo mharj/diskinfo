@@ -1,16 +1,17 @@
 # diskinfo
+
 read disk partition and filesystem information with NodeJS
 
 ```bash
-npm install mharj/diskinfo --save
+npm install mharj-diskinfo --save
 ```
 
 ```javascript
 const fs = require("fs");
-const scan = require('./diskinfo.js').scan;
-const device = '\\\\.\\PHYSICALDRIVE0';
+const scan = require("./diskinfo.js").scan;
+const device = "\\\\.\\PHYSICALDRIVE0";
 //const device = '/dev/sda';
-const fd = fs.openSync(device, 'rs+');
+const fd = fs.openSync(device, "rs+");
 let data = scan(fd);
 console.log(data);
 ```
