@@ -8,7 +8,7 @@ npm install mharj-diskinfo --save
 
 ```javascript
 const fs = require("fs");
-const scan = require("./diskinfo.js").scan;
+const scan = require("mharj-diskinfo").scan;
 const device = "\\\\.\\PHYSICALDRIVE0";
 //const device = '/dev/sda';
 const fd = fs.openSync(device, "rs+");
