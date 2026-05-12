@@ -1,6 +1,4 @@
-import * as uuidParse from 'uuid-parse';
-import * as iconv from 'iconv-lite';
-import {GPTPartition, MBRPartition} from './types';
+import type {GPTPartition, MBRPartition} from './types';
 
 const EFI_PART = Buffer.from([0x45, 0x46, 0x49, 0x20, 0x50, 0x41, 0x52, 0x54]);
 
@@ -15,13 +13,12 @@ export const gptPartTypes = Object.freeze({
 	MSR: 'e3c9e316-0b5c-4db8-817d-f92df00215ae',
 	BASIC_DATA: 'ebd0a0a2-b9e5-4433-87c0-68b6b72699c7',
 	getName: function (val: string): string {
-		// print names for values
-		for (let k in gptPartTypes) {
-			if (gptPartTypes[k] === val) {
+		return Object.entries(this).reduce((acc, [k, v]) => {
+			if (typeof v === 'string' && v === val) {
 				return k;
 			}
-		}
-		return 'Unknown';
+			return acc;
+		}, 'Unknown');
 	},
 });
 
@@ -61,31 +58,36 @@ function readUuidBytes(buf: Buffer, pos: number) {
 	]);
 }
 
+function readUuidString(buf: Buffer, pos: number): string {
+	const uuid = readUuidBytes(buf, pos).toString('hex');
+	return `${uuid.slice(0, 8)}-${uuid.slice(8, 12)}-${uuid.slice(12, 16)}-${uuid.slice(16, 20)}-${uuid.slice(20, 32)}`;
+}
+
 export function parseGPTable(buf: Buffer): GPTPartition {
-	const typeId = uuidParse.unparse(readUuidBytes(buf, 0));
-	const uuid = uuidParse.unparse(readUuidBytes(buf, 16));
+	const typeId = readUuidString(buf, 0);
+	const uuid = readUuidString(buf, 16);
 	const startLBA = buf.readBigUInt64LE(32);
 	const endLBA = buf.readBigUInt64LE(40);
 	return {
 		typeId,
 		type: gptPartTypes.getName(typeId),
 		uuid,
-		active: uuid == gptPartTypes.EMPTY ? false : true,
+		active: uuid !== gptPartTypes.EMPTY,
 		startLBA,
 		endLBA,
 		partitionSize: endLBA - startLBA + 1n, // +1?
 		attributes: buf.readBigUInt64BE(48),
-		label: iconv.decode(buf.slice(56, 128), 'utf16le').split('\u0000')[0], // bit hack in here
+		label: buf.subarray(56, 128).toString('utf16le').split('\u0000', 1)[0], // bit hack in here
 	};
 }
 
 export function parseGPT(buf: Buffer): IGtpData {
 	// https://en.wikipedia.org/wiki/GUID_Partition_Table
-	if (buf.indexOf(EFI_PART) != 0) {
+	if (buf.indexOf(EFI_PART) !== 0) {
 		throw Error('not GTP entry');
 	}
 	return {
-		revision: buf[8] + '.' + buf[9] + '.' + buf[10] + '.' + buf[11],
+		revision: `${buf[8]}.${buf[9]}.${buf[10]}.${buf[11]}`,
 		headerSize: buf.readUInt32LE(12),
 		headerCRC32: buf.readUInt32LE(16),
 		// buf.readUInt32LE(20); // reserved; must be zero
@@ -93,7 +95,7 @@ export function parseGPT(buf: Buffer): IGtpData {
 		backupLBA: buf.readBigUInt64LE(32),
 		firstUsableLBA: buf.readBigUInt64LE(40),
 		lastUsableLBA: buf.readBigUInt64LE(48),
-		uuid: uuidParse.unparse(readUuidBytes(buf, 56)),
+		uuid: readUuidString(buf, 56),
 		tableLBA: buf.readBigUInt64LE(72),
 		partitions: buf.readUInt32LE(80),
 		partitionSize: buf.readUInt32LE(84),

@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import fs from 'node:fs';
 export function readFile(fd: number, offset: number, length: number, position: fs.ReadPosition | null): Promise<Buffer> {
 	return new Promise((resolve, reject) => {
 		const buffer = Buffer.allocUnsafe(length);

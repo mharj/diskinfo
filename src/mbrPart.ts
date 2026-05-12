@@ -1,4 +1,4 @@
-import {GPTPartition, MBRPartition} from './types';
+import type {GPTPartition, MBRPartition} from './types';
 
 export const partTypes = {
 	EMPTY: 0x00,
@@ -12,30 +12,38 @@ export const partTypes = {
 	EFI: 0xef,
 	LINUX_RAID: 0xfd,
 	getName: function (val: number): string {
-		// print names for values
-		for (let k in partTypes) {
-			if (partTypes[k] === val) {
+		return Object.entries(this).reduce((acc, [k, v]) => {
+			if (typeof v === 'number' && v === val) {
 				return k;
 			}
-		}
-		return 'Unknown';
+			return acc;
+		}, 'Unknown');
 	},
 };
 
-export interface IMbrData {
+export type GptData = {
 	copyProtected: boolean;
 	uuid: string;
-	type: 'MBR' | 'GPT';
-	partitions: (MBRPartition | GPTPartition)[];
-}
+	type: 'GPT';
+	partitions: GPTPartition[];
+};
 
-export function parseMBR(mbr: Buffer): IMbrData {
-	if (mbr.length < 512 || mbr[0x1fe] != 85 || mbr[0x1ff] != 170) {
+export type MbrData = {
+	copyProtected: boolean;
+	uuid: string;
+	type: 'MBR';
+	partitions: MBRPartition[];
+};
+
+export type IMbrData = MbrData | GptData;
+
+export function parseMBR(mbr: Buffer): MbrData {
+	if (mbr.length < 512 || mbr[0x1fe] !== 85 || mbr[0x1ff] !== 170) {
 		// MBR signature
 		throw Error('no MBR signature or buffer is less than 512 bytes');
 	}
-	let ret: IMbrData = {
-		copyProtected: mbr[0x1bc] == 90 && mbr[0x1bc] == 90 ? true : false,
+	const ret: MbrData = {
+		copyProtected: !!(mbr[0x1bc] === 90 && mbr[0x1bc] === 90),
 		uuid: Buffer.from([mbr[0x1bb], mbr[0x1ba], mbr[0x1b9], mbr[0x1b8]]).toString('hex'), // DiskID: 1B8 (hex) through 1BE (hex) (looks like reverse)
 		partitions: [],
 		type: 'MBR', // as default
@@ -51,7 +59,7 @@ function parseMBRPartition(part: Buffer): MBRPartition {
 	const startLBA = part.readUInt32LE(8);
 	const partitionSize = part.readUInt32LE(12);
 	return {
-		active: part.readUInt8(0) == 0x80 ? true : false,
+		active: part.readUInt8(0) === 0x80,
 		type: part.readUInt8(4),
 		startLBA,
 		partitionSize,

@@ -1,42 +1,27 @@
 {
-	"compilerOptions": {
-		"module": "commonjs",
-		"target": "ES2020",
-		"lib": [
-			"es2018",
-			"ES2020.BigInt",
-		],
-		"rootDir": "./src",
-		"outDir": "./dist",
-		"moduleResolution": "node",
-		"sourceRoot": "./src",
-		"types": [
-			"node"
-		],
-		"declaration": true,
-		"removeComments": false,
-		"inlineSources": true,
-		"inlineSourceMap": true,
-		"forceConsistentCasingInFileNames": true,
-		"noImplicitReturns": true,
-		"noImplicitThis": true,
-		"noImplicitAny": true,
-		"importHelpers": true,
-		"strictNullChecks": true,
-		"suppressImplicitAnyIndexErrors": true,
-		"noUnusedLocals": true,
-		"allowJs": true
-	},
-	"engines": {
-		"node": ">=14.0.0",
-	},
-	"include": [
-		"src/**/*",
-		"src/**/**/*"
-	],
-	"exclude": [
-		"node_modules",
-		"**/*.spec.ts",
-		"test"
-	]
+  "extends": "@tsconfig/node16/tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "moduleResolution": "node16",
+    "sourceRoot": "./src",
+    "types": ["node"],
+    "declaration": true,
+    "removeComments": false,
+    "inlineSources": true,
+    "inlineSourceMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "importHelpers": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "allowJs": true
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "**/*.spec.ts", "test"]
 }
