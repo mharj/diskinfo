@@ -2,7 +2,18 @@ import type {GPTPartition, MBRPartition} from './types';
 
 const EFI_PART = Buffer.from([0x45, 0x46, 0x49, 0x20, 0x50, 0x41, 0x52, 0x54]);
 
-export const gptPartTypes = Object.freeze({
+export const gptPartTypes: Readonly<{
+	EMPTY: '00000000-0000-0000-0000-000000000000';
+	MBR: '024dee41-33e7-11d3-9d69-0008c781f39f';
+	EFI: 'c12a7328-f81f-11d2-ba4b-00a0c93ec93b';
+	LINUX: '0fc63daf-8483-4772-8e79-3d69d8477de4';
+	LINUX_SWAP: '0657fd6d-a4ab-43c4-84e5-0933c84b4f4f';
+	LINUX_LVM: 'e6d6d379-f507-44c2-a23c-238f2a3df928';
+	LINUX_RAID: 'a19d880f-05fc-4d3b-a006-743f0f84911e';
+	MSR: 'e3c9e316-0b5c-4db8-817d-f92df00215ae';
+	BASIC_DATA: 'ebd0a0a2-b9e5-4433-87c0-68b6b72699c7';
+	getName: (val: string) => string;
+}> = Object.freeze({
 	EMPTY: '00000000-0000-0000-0000-000000000000',
 	MBR: '024dee41-33e7-11d3-9d69-0008c781f39f',
 	EFI: 'c12a7328-f81f-11d2-ba4b-00a0c93ec93b',
@@ -58,14 +69,14 @@ function readUuidBytes(buf: Buffer, pos: number) {
 	]);
 }
 
-function readUuidString(buf: Buffer, pos: number): string {
+function readUuidAsString(buf: Buffer, pos: number): string {
 	const uuid = readUuidBytes(buf, pos).toString('hex');
 	return `${uuid.slice(0, 8)}-${uuid.slice(8, 12)}-${uuid.slice(12, 16)}-${uuid.slice(16, 20)}-${uuid.slice(20, 32)}`;
 }
 
 export function parseGPTable(buf: Buffer): GPTPartition {
-	const typeId = readUuidString(buf, 0);
-	const uuid = readUuidString(buf, 16);
+	const typeId = readUuidAsString(buf, 0);
+	const uuid = readUuidAsString(buf, 16);
 	const startLBA = buf.readBigUInt64LE(32);
 	const endLBA = buf.readBigUInt64LE(40);
 	return {
@@ -95,7 +106,7 @@ export function parseGPT(buf: Buffer): IGtpData {
 		backupLBA: buf.readBigUInt64LE(32),
 		firstUsableLBA: buf.readBigUInt64LE(40),
 		lastUsableLBA: buf.readBigUInt64LE(48),
-		uuid: readUuidString(buf, 56),
+		uuid: readUuidAsString(buf, 56),
 		tableLBA: buf.readBigUInt64LE(72),
 		partitions: buf.readUInt32LE(80),
 		partitionSize: buf.readUInt32LE(84),

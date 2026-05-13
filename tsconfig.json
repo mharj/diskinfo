@@ -17,7 +17,9 @@
     "importHelpers": true,
     "strictNullChecks": true,
     "noUnusedLocals": true,
-    "allowJs": true
+    "noUncheckedSideEffectImports": true,
+    "erasableSyntaxOnly": true,
+    "isolatedDeclarations": true
   },
   "engines": {
     "node": ">=16.0.0"

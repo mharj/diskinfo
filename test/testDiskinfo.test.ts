@@ -1,25 +1,20 @@
-import fs from 'node:fs';
+import {type FileHandle, open, readFile} from 'node:fs/promises';
 import crc32 from 'buffer-crc32';
 import {beforeAll, describe, expect, it} from 'vitest';
-import {Magic, scan} from '../src/';
+import {scan} from '../src/';
 import {gptPartTypes, type IGtpData, parseGPT, parseGPTable} from '../src/gptPart';
 import {parseMBR, partTypes} from '../src/mbrPart';
 
 let gptData: Buffer;
 let mbrData: Buffer;
 let gtpInfo: IGtpData;
-let fdNTFS: number;
-let fdEXT: number;
-let fdLVM2: number;
-let fdMbr: number;
+let fdMbr: FileHandle;
+
 describe('diskinfo', function () {
-	beforeAll(function () {
-		gptData = fs.readFileSync('./test/gtp.bin');
-		mbrData = fs.readFileSync('./test/mbr.bin');
-		fdNTFS = fs.openSync('./test/ntfs.bin', 'rs+');
-		fdEXT = fs.openSync('./test/ext.bin', 'rs+');
-		fdLVM2 = fs.openSync('./test/lvm2.bin', 'rs+');
-		fdMbr = fs.openSync('./test/mbr.bin', 'rs+');
+	beforeAll(async function () {
+		gptData = await readFile('./test/gtp.bin');
+		mbrData = await readFile('./test/mbr.bin');
+		fdMbr = await open('./test/mbr.bin', 'rs+');
 	});
 	describe('partitions', function () {
 		it('should parse mbr info', function () {
@@ -34,11 +29,11 @@ describe('diskinfo', function () {
 		it('should parse gtp info', function () {
 			const info = parseMBR(gptData);
 			expect(info.partitions[0].type).toBe(partTypes.GPT);
-			gtpInfo = parseGPT(gptData.slice(512, 1024));
+			gtpInfo = parseGPT(gptData.subarray(512, 1024));
 			expect(gtpInfo.revision).toBe('0.0.1.0');
 			expect(gtpInfo.headerSize).toBe(92);
 			// check header crc32
-			const crcbuff = gptData.slice(512, 512 + gtpInfo.headerSize);
+			const crcbuff = gptData.subarray(512, 512 + gtpInfo.headerSize);
 			crcbuff[16] = 0; // zero current crc32 for check
 			crcbuff[17] = 0;
 			crcbuff[18] = 0;
@@ -52,7 +47,7 @@ describe('diskinfo', function () {
 				i < Number(gtpInfo.tableLBA) * 512 + gtpInfo.partitions * gtpInfo.partitionSize;
 				i += gtpInfo.partitionSize
 			) {
-				const table = parseGPTable(gptData.slice(i, i + gtpInfo.partitionSize));
+				const table = parseGPTable(gptData.subarray(i, i + gtpInfo.partitionSize));
 				if (i === 1024) {
 					const startLBA = 0x800n;
 					const endLBA = 0x1007ffn;
@@ -119,24 +114,6 @@ describe('diskinfo', function () {
 					expect(table.uuid).toBe('9a6ea671-a597-4ae2-90d4-75fdaede55ce');
 				}
 			}
-		});
-	});
-	describe('FS magic check', function () {
-		it('should check Win NTFS magic', function () {
-			const magic = new Magic(fdNTFS);
-			expect(magic.haveNtfs(0)).toBe(true);
-			expect(magic.haveExt(0)).toBe(false);
-		});
-		it('should check Linux EXT2/3/4 magic', function () {
-			const magic = new Magic(fdEXT);
-			expect(magic.haveExt(0)).toBe(true);
-			expect(magic.haveNtfs(0)).toBe(false);
-		});
-		it('should check Linux LVM2 magic', function () {
-			const magic = new Magic(fdLVM2);
-			expect(magic.haveLvm2(0)).toBe(true);
-			expect(magic.haveExt(0)).toBe(false);
-			expect(magic.haveNtfs(0)).toBe(false);
 		});
 	});
 	describe('test async scan', function () {

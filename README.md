@@ -3,17 +3,31 @@
 read disk partition and filesystem information with NodeJS
 Requires: NodeJS 10.4 as using Bigint
 
+### Installation
+
 ```bash
 npm install mharj-diskinfo --save
 ```
 
+### Magic usage
+
+```typescript
+import {open} from 'node:fs/promises';
+import {Magic} from 'mharj-diskinfo';
+const handle = await open('\\\\.\\PHYSICALDRIVE0', 'rs+');
+const magic = new Magic(handle);
+console.log(magic.haveNtfs(0)); // true if NTFS magic found at offset 0
+```
+
+### Partition scan usage
+
 ```javascript
-const fs = require('fs');
+const fsp = require('fs/promises');
 const scan = require('mharj-diskinfo').scan;
 const device = '\\\\.\\PHYSICALDRIVE0';
 //const device = '/dev/sda';
-const fd = fs.openSync(device, 'rs+');
-let data = await scan(fd);
+const handle = await fsp.open(device, 'rs+');
+let data = await scan(handle);
 console.log(data);
 ```
 

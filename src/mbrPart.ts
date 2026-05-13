@@ -1,6 +1,18 @@
 import type {GPTPartition, MBRPartition} from './types';
 
-export const partTypes = {
+export const partTypes: Readonly<{
+	EMPTY: 0;
+	EXTENDED: 5;
+	NTFS: 7;
+	LINUX_SWAP: 130;
+	LINUX: 131;
+	LINUX_EXTENDED: 133;
+	LINUX_LVM: 142;
+	GPT: 238;
+	EFI: 239;
+	LINUX_RAID: 253;
+	getName: (val: number) => string;
+}> = Object.freeze({
 	EMPTY: 0x00,
 	EXTENDED: 0x05,
 	NTFS: 0x07,
@@ -19,7 +31,7 @@ export const partTypes = {
 			return acc;
 		}, 'Unknown');
 	},
-};
+});
 
 export type GptData = {
 	copyProtected: boolean;
@@ -50,7 +62,7 @@ export function parseMBR(mbr: Buffer): MbrData {
 	};
 	for (let i = 446; i <= 508; i += 16) {
 		// MBR table blocks
-		ret.partitions.push(parseMBRPartition(mbr.slice(i, i + 16)));
+		ret.partitions.push(parseMBRPartition(mbr.subarray(i, i + 16)));
 	}
 	return ret;
 }
