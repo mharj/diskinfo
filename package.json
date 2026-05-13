@@ -18,12 +18,12 @@
 	},
 	"scripts": {
 		"prepare": "lefthook install",
-		"build": "tsdown src/index.ts --format cjs,esm --dts --clean",
+		"build": "tsdown src/index.ts --format cjs,esm --dts --clean -c tsconfig.build.json",
 		"prepublishOnly": "npm run build",
 		"test": "vitest test --typecheck --run --no-isolate --coverage",
 		"coverage": "vitest test --run --no-isolate --reporter=dot --coverage --coverage.reporter=lcov",
 		"lint": "biome check",
-		"validate": "tsc --noEmit --project tsconfig.test.json"
+		"validate": "tsgo --noEmit"
 	},
 	"repository": "github:mharj/diskinfo",
 	"files": [
@@ -43,6 +43,7 @@
 		"@tsconfig/node16": "^16.1.8",
 		"@types/buffer-crc32": "^0.2.0",
 		"@types/node": "^22.19.1",
+		"@typescript/native-preview": "7.0.0-dev.20260421.2",
 		"@vitest/coverage-v8": "^4.1.6",
 		"buffer-crc32": "^0.2.13",
 		"c8": "^11.0.0",

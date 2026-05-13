@@ -1,7 +1,7 @@
 {
   "extends": "@tsconfig/node16/tsconfig.json",
   "compilerOptions": {
-    "rootDir": "./src",
+    "rootDir": ".",
     "outDir": "./dist",
     "moduleResolution": "node16",
     "sourceRoot": "./src",
@@ -24,6 +24,6 @@
   "engines": {
     "node": ">=16.0.0"
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "**/*.spec.ts", "test"]
+  "include": ["src", "test"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
 }
