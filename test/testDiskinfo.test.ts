@@ -8,13 +8,17 @@ import {parseMBR, partTypes} from '../src/mbrPart';
 let gptData: Buffer;
 let mbrData: Buffer;
 let gtpInfo: IGtpData;
-let fdMbr: FileHandle;
+let handleMbr: FileHandle;
+let handlerGpt: FileHandle;
+let handleLinuxMbr: FileHandle;
 
 describe('diskinfo', function () {
 	beforeAll(async function () {
 		gptData = await readFile('./test/gtp.bin');
 		mbrData = await readFile('./test/mbr.bin');
-		fdMbr = await open('./test/mbr.bin', 'rs+');
+		handleMbr = await open('./test/mbr.bin', 'rs+');
+		handleLinuxMbr = await open('./test/linuxmbr.bin', 'rs+');
+		handlerGpt = await open('./test/gtp.bin', 'rs+');
 	});
 	describe('partitions', function () {
 		it('should parse mbr info', function () {
@@ -117,12 +121,28 @@ describe('diskinfo', function () {
 		});
 	});
 	describe('test async scan', function () {
-		it('should scan file descriptor', async () => {
-			const data = await scan(fdMbr);
+		it('should scan windows mbr', async () => {
+			const data = await scan(handleMbr);
 			expect(data.copyProtected).toBe(false);
 			expect(data.uuid).toBe('a83f8008');
 			for (const partition of data.partitions) {
 				expect(Object.keys(partition).sort()).toEqual(['active', 'endLBA', 'partitionSize', 'startLBA', 'type']);
+			}
+		});
+		it('should scan linux mbr', async () => {
+			const data = await scan(handleLinuxMbr);
+			expect(data.copyProtected).toBe(false);
+			expect(data.uuid).toBe('b63a8b78');
+			for (const partition of data.partitions) {
+				expect(Object.keys(partition).sort()).toEqual(['active', 'endLBA', 'partitionSize', 'startLBA', 'type']);
+			}
+		});
+		it('should scan gpt', async () => {
+			const data = await scan(handlerGpt);
+			expect(data.copyProtected).toBe(false);
+			expect(data.uuid).toBe('29c6b165-daa3-43fb-a56d-449fea36fd3c');
+			for (const partition of data.partitions) {
+				expect(Object.keys(partition).sort()).toEqual(['active', 'attributes', 'endLBA', 'label', 'partitionSize', 'startLBA', 'type', 'typeId', 'uuid']);
 			}
 		});
 	});

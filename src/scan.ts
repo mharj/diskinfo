@@ -5,7 +5,7 @@ import type {GPTPartition, MBRPartition} from './types';
 
 async function getMbrPartitions(handle: FileHandle, startLBA: number) {
 	const buffer = Buffer.allocUnsafe(512);
-	await handle.read(buffer, 0, 512, 512);
+	await handle.read(buffer, 0, 512, startLBA * 512);
 	const output: (MBRPartition & GPTPartition)[] = [];
 	const extparts = parseMBR(buffer);
 	for (const extpart of extparts.partitions) {
@@ -49,7 +49,8 @@ export async function scan(handle: FileHandle): Promise<IMbrData> {
 	const rootMbr = parseMBR(buffer) as IMbrData;
 	for (const p of rootMbr.partitions) {
 		if (isExtendedPartition(p)) {
-			rootMbr.partitions.push(...(await getMbrPartitions(handle, p.startLBA)));
+			const partitions = await getMbrPartitions(handle, p.startLBA);
+			rootMbr.partitions.push(...partitions);
 		}
 		if (isGptPartition(rootMbr, p)) {
 			const {partitions, uuid} = await getGptPartitions(handle);

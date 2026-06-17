@@ -1,5 +1,11 @@
 # diskinfo
 
+[![TypeScript](https://badges.frapsoft.com/typescript/code/typescript.svg?v=101)](https://github.com/ellerbrock/typescript-badges/)
+[![npm version](https://badge.fury.io/js/mharj-diskinfo.svg)](https://badge.fury.io/js/mharj-diskinfo)
+[![Maintainability](https://qlty.sh/gh/mharj/projects/diskinfo/maintainability.svg)](https://qlty.sh/gh/mharj/projects/diskinfo)
+[![Code Coverage](https://qlty.sh/gh/mharj/projects/diskinfo/coverage.svg)](https://qlty.sh/gh/mharj/projects/diskinfo)
+[![CI/CD](https://github.com/mharj/diskinfo/actions/workflows/main.yml/badge.svg)](https://github.com/mharj/diskinfo/actions/workflows/main.yml)
+
 read disk partition and filesystem information with NodeJS
 Requires: NodeJS 10.4 as using Bigint
 
