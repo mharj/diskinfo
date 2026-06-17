@@ -1,6 +1,6 @@
 {
 	"name": "mharj-diskinfo",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"description": "Node.js library to parse MBR and GPT partition information from disk images or devices.",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.mjs",
